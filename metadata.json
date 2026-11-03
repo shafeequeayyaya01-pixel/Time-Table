@@ -1,0 +1,6 @@
+{
+  "name": "Wafy & Wafiyya Portal",
+  "description": "Co-ordinated Academic Timetable Optimizer, 3:30 PM Daily Period Audit & Semester Deficit Portal for KKHM Islamic & Arts College (Wafy) and Al-Gaith Islamic & Arts College for Girls (Wafiyya).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,350 @@
+{
+  "entities": {
+    "TimetableSlot": {
+      "title": "TimetableSlot",
+      "description": "Represents a scheduled academic period in either KKHM Islamic & Arts College (WAFY) or Al-Gaith Islamic & Arts College for Girls (WAFIYYA), supporting science double periods, PG Mon-Wed schedules, cross-campus faculty clustering, and 3-way split electives.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated user UID owning this workspace."
+        },
+        "campus": {
+          "type": "string",
+          "enum": ["WAFY", "WAFIYYA"],
+          "description": "Campus identifier (WAFY Boys Campus or WAFIYYA Girls Campus)."
+        },
+        "batchName": {
+          "type": "string",
+          "description": "Academic class/batch name (e.g., Tamheediyya Ula, Aliya Ula, PG 1)."
+        },
+        "dayOfWeek": {
+          "type": "string",
+          "enum": ["MON", "TUE", "WED", "THU", "FRI", "SAT"],
+          "description": "Day of the academic week."
+        },
+        "periodNumber": {
+          "type": "integer",
+          "description": "Period index from 1 to 7."
+        },
+        "subjectName": {
+          "type": "string",
+          "description": "Subject title in English/Malayalam."
+        },
+        "subjectNameArabic": {
+          "type": "string",
+          "description": "Arabic calligraphic title for Kitab/Islamic subjects."
+        },
+        "facultyId": {
+          "type": "string",
+          "description": "Identifier of the assigned faculty member."
+        },
+        "facultyName": {
+          "type": "string",
+          "description": "Name of the assigned faculty member."
+        },
+        "slotType": {
+          "type": "string",
+          "enum": ["ISLAMIC", "ARTS_DEGREE", "SCIENCE_LAB", "SPLIT_ELECTIVE", "PG_SEMINAR"],
+          "description": "Category of the timetable period."
+        },
+        "isDoublePeriod": {
+          "type": "boolean",
+          "description": "True if this slot is part of a consecutive Science Lab double period."
+        },
+        "isCrossCampusFaculty": {
+          "type": "boolean",
+          "description": "True if the faculty member teaches across both Wafy and Wafiyya campuses."
+        },
+        "electiveSubBatches": {
+          "type": "string",
+          "description": "Details of split-batch electives (e.g., Urdu / Malayalam / Arabic)."
+        },
+        "roomName": {
+          "type": "string",
+          "description": "Assigned lecture hall or lab room."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created (clients must submit FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when last updated (clients must submit FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "campus",
+        "batchName",
+        "dayOfWeek",
+        "periodNumber",
+        "subjectName",
+        "subjectNameArabic",
+        "facultyId",
+        "facultyName",
+        "slotType",
+        "isDoublePeriod",
+        "isCrossCampusFaculty",
+        "electiveSubBatches",
+        "roomName",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PeriodAudit": {
+      "title": "PeriodAudit",
+      "description": "3:30 PM Daily Period Audit record submitted by a Class Leader or Admin, tracking conducted, missed, substituted, and compensated classes.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated user UID."
+        },
+        "slotId": {
+          "type": "string",
+          "description": "Reference ID of the TimetableSlot."
+        },
+        "campus": {
+          "type": "string",
+          "enum": ["WAFY", "WAFIYYA"],
+          "description": "Campus identifier."
+        },
+        "batchName": {
+          "type": "string",
+          "description": "Class/batch name."
+        },
+        "dateString": {
+          "type": "string",
+          "description": "ISO date string (YYYY-MM-DD) of the audited period."
+        },
+        "dayOfWeek": {
+          "type": "string",
+          "enum": ["MON", "TUE", "WED", "THU", "FRI", "SAT"],
+          "description": "Day of week."
+        },
+        "periodNumber": {
+          "type": "integer",
+          "description": "Period number (1-7)."
+        },
+        "subjectName": {
+          "type": "string",
+          "description": "Audited subject name."
+        },
+        "facultyName": {
+          "type": "string",
+          "description": "Scheduled faculty name."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["CONDUCTED", "MISSED", "SUBSTITUTED", "COMPENSATED"],
+          "description": "Audit status of the period."
+        },
+        "missReason": {
+          "type": "string",
+          "description": "Reason if the period was missed or substituted."
+        },
+        "substituteFaculty": {
+          "type": "string",
+          "description": "Name of substitute faculty if substituted."
+        },
+        "classLeaderName": {
+          "type": "string",
+          "description": "Name or role of the Class Leader who recorded the 3:30 PM audit."
+        },
+        "compensationDate": {
+          "type": "string",
+          "description": "Scheduled makeup date/slot if compensated."
+        },
+        "compensationNotes": {
+          "type": "string",
+          "description": "Notes on makeup class completion."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created (clients must submit FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when updated (clients must submit FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "slotId",
+        "campus",
+        "batchName",
+        "dateString",
+        "dayOfWeek",
+        "periodNumber",
+        "subjectName",
+        "facultyName",
+        "status",
+        "missReason",
+        "substituteFaculty",
+        "classLeaderName",
+        "compensationDate",
+        "compensationNotes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SemesterConfig": {
+      "title": "SemesterConfig",
+      "description": "Academic semester working days, holidays, and deficit calculation tracker per campus.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated user UID."
+        },
+        "campus": {
+          "type": "string",
+          "enum": ["WAFY", "WAFIYYA"],
+          "description": "Campus identifier."
+        },
+        "semesterName": {
+          "type": "string",
+          "description": "Name of the academic semester."
+        },
+        "totalCalendarDays": {
+          "type": "integer",
+          "description": "Total calendar days in the semester span."
+        },
+        "sundaysAndFridaysOff": {
+          "type": "integer",
+          "description": "Weekly holidays count."
+        },
+        "monthlyAndFestivalHolidays": {
+          "type": "integer",
+          "description": "Monthly and festival holidays count."
+        },
+        "examAndEventDays": {
+          "type": "integer",
+          "description": "Exam and special event non-instructional days."
+        },
+        "targetWorkingDays": {
+          "type": "integer",
+          "description": "Mandatory target instructional working days."
+        },
+        "completedWorkingDays": {
+          "type": "integer",
+          "description": "Completed instructional working days so far."
+        },
+        "makeupDaysScheduled": {
+          "type": "integer",
+          "description": "Additional makeup working days scheduled to offset deficit."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created (clients must submit FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when updated (clients must submit FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "campus",
+        "semesterName",
+        "totalCalendarDays",
+        "sundaysAndFridaysOff",
+        "monthlyAndFestivalHolidays",
+        "examAndEventDays",
+        "targetWorkingDays",
+        "completedWorkingDays",
+        "makeupDaysScheduled",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "FacultyMember": {
+      "title": "FacultyMember",
+      "description": "Faculty profile with cross-campus travel clustering preference and weekly workload.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated user UID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the faculty member."
+        },
+        "designation": {
+          "type": "string",
+          "description": "Role or academic title."
+        },
+        "primaryCampus": {
+          "type": "string",
+          "enum": ["WAFY", "WAFIYYA", "BOTH"],
+          "description": "Assigned campus or BOTH for shared cross-campus faculty."
+        },
+        "subjects": {
+          "type": "string",
+          "description": "Subjects taught by the faculty member."
+        },
+        "preferredCluster": {
+          "type": "string",
+          "enum": ["MORNING_WAFY_AFTERNOON_WAFIYYA", "ALT_DAYS", "FULL_DAY_SINGLE_CAMPUS"],
+          "description": "Travel clustering mode for the High-Density Timetable Optimizer."
+        },
+        "maxWeeklyPeriods": {
+          "type": "integer",
+          "description": "Maximum periods per week."
+        },
+        "assignedWeeklyPeriods": {
+          "type": "integer",
+          "description": "Currently assigned periods per week."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created (clients must submit FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when updated (clients must submit FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "designation",
+        "primaryCampus",
+        "subjects",
+        "preferredCluster",
+        "maxWeeklyPeriods",
+        "assignedWeeklyPeriods",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/timetable_slots/{slotId}": {
+      "schema": { "$ref": "#/entities/TimetableSlot" },
+      "description": "Per-user timetable slots for Wafy and Wafiyya campuses."
+    },
+    "/users/{userId}/period_audits/{auditId}": {
+      "schema": { "$ref": "#/entities/PeriodAudit" },
+      "description": "Per-user 3:30 PM daily period audit records and compensation tracking."
+    },
+    "/users/{userId}/semester_configs/{configId}": {
+      "schema": { "$ref": "#/entities/SemesterConfig" },
+      "description": "Per-user academic semester working day and deficit configurations."
+    },
+    "/users/{userId}/faculty_members/{facultyId}": {
+      "schema": { "$ref": "#/entities/FacultyMember" },
+      "description": "Per-user faculty roster and cross-campus clustering constraints."
+    }
+  }
+}

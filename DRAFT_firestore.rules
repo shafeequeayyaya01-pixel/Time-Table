@@ -1,0 +1,248 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1: Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Entity 1: TimetableSlot Validation Helper
+    function isValidTimetableSlot(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.campus is string && (data.campus == 'WAFY' || data.campus == 'WAFIYYA') &&
+             data.batchName is string && data.batchName.size() >= 1 && data.batchName.size() <= 80 &&
+             data.dayOfWeek is string && (data.dayOfWeek == 'MON' || data.dayOfWeek == 'TUE' || data.dayOfWeek == 'WED' || data.dayOfWeek == 'THU' || data.dayOfWeek == 'FRI' || data.dayOfWeek == 'SAT') &&
+             data.periodNumber is int && data.periodNumber >= 1 && data.periodNumber <= 7 &&
+             data.subjectName is string && data.subjectName.size() >= 1 && data.subjectName.size() <= 120 &&
+             data.subjectNameArabic is string && data.subjectNameArabic.size() <= 120 &&
+             data.facultyId is string && data.facultyId.size() >= 1 && data.facultyId.size() <= 80 &&
+             data.facultyName is string && data.facultyName.size() >= 1 && data.facultyName.size() <= 100 &&
+             data.slotType is string && (data.slotType == 'ISLAMIC' || data.slotType == 'ARTS_DEGREE' || data.slotType == 'SCIENCE_LAB' || data.slotType == 'SPLIT_ELECTIVE' || data.slotType == 'PG_SEMINAR') &&
+             data.isDoublePeriod is bool &&
+             data.isCrossCampusFaculty is bool &&
+             data.electiveSubBatches is string && data.electiveSubBatches.size() <= 250 &&
+             data.roomName is string && data.roomName.size() >= 1 && data.roomName.size() <= 60 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // Entity 2: PeriodAudit Validation Helper
+    function isValidPeriodAudit(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.slotId is string && data.slotId.size() >= 1 && data.slotId.size() <= 128 &&
+             data.campus is string && (data.campus == 'WAFY' || data.campus == 'WAFIYYA') &&
+             data.batchName is string && data.batchName.size() >= 1 && data.batchName.size() <= 80 &&
+             data.dateString is string && data.dateString.size() >= 1 && data.dateString.size() <= 20 &&
+             data.dayOfWeek is string && (data.dayOfWeek == 'MON' || data.dayOfWeek == 'TUE' || data.dayOfWeek == 'WED' || data.dayOfWeek == 'THU' || data.dayOfWeek == 'FRI' || data.dayOfWeek == 'SAT') &&
+             data.periodNumber is int && data.periodNumber >= 1 && data.periodNumber <= 7 &&
+             data.subjectName is string && data.subjectName.size() >= 1 && data.subjectName.size() <= 120 &&
+             data.facultyName is string && data.facultyName.size() >= 1 && data.facultyName.size() <= 100 &&
+             data.status is string && (data.status == 'CONDUCTED' || data.status == 'MISSED' || data.status == 'SUBSTITUTED' || data.status == 'COMPENSATED') &&
+             data.missReason is string && data.missReason.size() <= 200 &&
+             data.substituteFaculty is string && data.substituteFaculty.size() <= 100 &&
+             data.classLeaderName is string && data.classLeaderName.size() >= 1 && data.classLeaderName.size() <= 100 &&
+             data.compensationDate is string && data.compensationDate.size() <= 60 &&
+             data.compensationNotes is string && data.compensationNotes.size() <= 200 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // Entity 3: SemesterConfig Validation Helper
+    function isValidSemesterConfig(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.campus is string && (data.campus == 'WAFY' || data.campus == 'WAFIYYA') &&
+             data.semesterName is string && data.semesterName.size() >= 1 && data.semesterName.size() <= 100 &&
+             data.totalCalendarDays is int && data.totalCalendarDays >= 1 && data.totalCalendarDays <= 366 &&
+             data.sundaysAndFridaysOff is int && data.sundaysAndFridaysOff >= 0 && data.sundaysAndFridaysOff <= 200 &&
+             data.monthlyAndFestivalHolidays is int && data.monthlyAndFestivalHolidays >= 0 && data.monthlyAndFestivalHolidays <= 200 &&
+             data.examAndEventDays is int && data.examAndEventDays >= 0 && data.examAndEventDays <= 200 &&
+             data.targetWorkingDays is int && data.targetWorkingDays >= 1 && data.targetWorkingDays <= 300 &&
+             data.completedWorkingDays is int && data.completedWorkingDays >= 0 && data.completedWorkingDays <= 300 &&
+             data.makeupDaysScheduled is int && data.makeupDaysScheduled >= 0 && data.makeupDaysScheduled <= 100 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // Entity 4: FacultyMember Validation Helper
+    function isValidFacultyMember(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.designation is string && data.designation.size() >= 1 && data.designation.size() <= 100 &&
+             data.primaryCampus is string && (data.primaryCampus == 'WAFY' || data.primaryCampus == 'WAFIYYA' || data.primaryCampus == 'BOTH') &&
+             data.subjects is string && data.subjects.size() >= 1 && data.subjects.size() <= 200 &&
+             data.preferredCluster is string && (data.preferredCluster == 'MORNING_WAFY_AFTERNOON_WAFIYYA' || data.preferredCluster == 'ALT_DAYS' || data.preferredCluster == 'FULL_DAY_SINGLE_CAMPUS') &&
+             data.maxWeeklyPeriods is int && data.maxWeeklyPeriods >= 1 && data.maxWeeklyPeriods <= 42 &&
+             data.assignedWeeklyPeriods is int && data.assignedWeeklyPeriods >= 0 && data.assignedWeeklyPeriods <= 42 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId}/timetable_slots/{slotId} {
+      allow get: if isSignedIn() && isValidId(userId) && isValidId(slotId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(slotId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'campus', 'batchName', 'dayOfWeek', 'periodNumber',
+                         'subjectName', 'subjectNameArabic', 'facultyId', 'facultyName',
+                         'slotType', 'isDoublePeriod', 'isCrossCampusFaculty',
+                         'electiveSubBatches', 'roomName', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'campus', 'batchName', 'dayOfWeek', 'periodNumber',
+                         'subjectName', 'subjectNameArabic', 'facultyId', 'facultyName',
+                         'slotType', 'isDoublePeriod', 'isCrossCampusFaculty',
+                         'electiveSubBatches', 'roomName', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidTimetableSlot(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(slotId) &&
+                       request.auth.uid == userId &&
+                       isValidTimetableSlot(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'campus', 'batchName', 'dayOfWeek', 'periodNumber',
+                         'subjectName', 'subjectNameArabic', 'facultyId', 'facultyName',
+                         'slotType', 'isDoublePeriod', 'isCrossCampusFaculty',
+                         'electiveSubBatches', 'roomName', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && isValidId(slotId) && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/period_audits/{auditId} {
+      allow get: if isSignedIn() && isValidId(userId) && isValidId(auditId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(auditId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'slotId', 'campus', 'batchName', 'dateString',
+                         'dayOfWeek', 'periodNumber', 'subjectName', 'facultyName',
+                         'status', 'missReason', 'substituteFaculty', 'classLeaderName',
+                         'compensationDate', 'compensationNotes', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'slotId', 'campus', 'batchName', 'dateString',
+                         'dayOfWeek', 'periodNumber', 'subjectName', 'facultyName',
+                         'status', 'missReason', 'substituteFaculty', 'classLeaderName',
+                         'compensationDate', 'compensationNotes', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidPeriodAudit(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(auditId) &&
+                       request.auth.uid == userId &&
+                       isValidPeriodAudit(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'status', 'missReason', 'substituteFaculty', 'classLeaderName',
+                         'compensationDate', 'compensationNotes', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && isValidId(auditId) && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/semester_configs/{configId} {
+      allow get: if isSignedIn() && isValidId(userId) && isValidId(configId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(configId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'campus', 'semesterName', 'totalCalendarDays',
+                         'sundaysAndFridaysOff', 'monthlyAndFestivalHolidays',
+                         'examAndEventDays', 'targetWorkingDays', 'completedWorkingDays',
+                         'makeupDaysScheduled', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'campus', 'semesterName', 'totalCalendarDays',
+                         'sundaysAndFridaysOff', 'monthlyAndFestivalHolidays',
+                         'examAndEventDays', 'targetWorkingDays', 'completedWorkingDays',
+                         'makeupDaysScheduled', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidSemesterConfig(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(configId) &&
+                       request.auth.uid == userId &&
+                       isValidSemesterConfig(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'semesterName', 'totalCalendarDays', 'sundaysAndFridaysOff',
+                         'monthlyAndFestivalHolidays', 'examAndEventDays',
+                         'targetWorkingDays', 'completedWorkingDays',
+                         'makeupDaysScheduled', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && isValidId(configId) && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/faculty_members/{facultyId} {
+      allow get: if isSignedIn() && isValidId(userId) && isValidId(facultyId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(facultyId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'name', 'designation', 'primaryCampus',
+                         'subjects', 'preferredCluster', 'maxWeeklyPeriods',
+                         'assignedWeeklyPeriods', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'name', 'designation', 'primaryCampus',
+                         'subjects', 'preferredCluster', 'maxWeeklyPeriods',
+                         'assignedWeeklyPeriods', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidFacultyMember(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(facultyId) &&
+                       request.auth.uid == userId &&
+                       isValidFacultyMember(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'name', 'designation', 'primaryCampus', 'subjects',
+                         'preferredCluster', 'maxWeeklyPeriods',
+                         'assignedWeeklyPeriods', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && isValidId(facultyId) && request.auth.uid == userId;
+    }
+  }
+}
