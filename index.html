@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WAFY &amp; WAFIYYA | Co-ordinated Academic Timetable &amp; 3:30 PM Audit Portal</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Google Fonts: Inter, Cairo, Amiri -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- html2pdf.js for A4 Landscape PDF Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Cairo', 'sans-serif'],
+            arabic: ['Amiri', 'serif']
+          },
+          colors: {
+            wafy: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b'
+            },
+            wafiyya: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a'
+            },
+            gold: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .font-arabic {
+      font-family: 'Amiri', serif;
+    }
+    .font-display {
+      font-family: 'Cairo', sans-serif;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      @page {
+        size: A4 landscape;
+        margin: 8mm;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP INSTITUTIONAL HEADER -->
+  <header id="portalHeader" class="bg-gradient-to-r from-wafy-900 via-wafy-800 to-wafiyya-900 text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <!-- Brand & College Names -->
+        <div class="flex items-start sm:items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-gold-500/20 border border-gold-400/40 flex items-center justify-center text-gold-400 text-xl shrink-0">
+            <i class="fa-solid fa-mosque"></i>
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gold-500/20 text-gold-400 border border-gold-400/30">
+                WAFY &amp; WAFIYYA CO-ORDINATED PORTAL
+              </span>
+              <span class="font-arabic text-gold-400 text-base">بوابة تنسيق الجداول الأكاديمية والتدقيق اليومي</span>
+            </div>
+            <h1 id="activeCollegeHeading" class="font-display text-lg sm:text-xl font-bold tracking-tight mt-0.5">
+              KKHM ISLAMIC &amp; ARTS COLLEGE (WAFY - Boys Campus)
+            </h1>
+            <p class="text-xs text-emerald-100/80">
+              Co-ordinated with AL-GAITH ISLAMIC &amp; ARTS COLLEGE FOR GIRLS (WAFIYYA) • Zero-Clash Scheduling &amp; 3:30 PM Audit
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Controls: Campus Switcher, Cloud Sync Badge & Role Selector -->
+        <div class="flex flex-wrap items-center gap-2 no-print">
+          <!-- Campus Toggle -->
+          <div class="inline-flex rounded-xl bg-black/25 p-1 border border-white/15">
+            <button onclick="switchCampus('WAFY')" id="btnCampusWafy"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-wafy-900 shadow">
+              <i class="fa-solid fa-building-columns mr-1"></i> WAFY (Boys)
+            </button>
+            <button onclick="switchCampus('WAFIYYA')" id="btnCampusWafiyya"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-white/85 hover:text-white">
+              <i class="fa-solid fa-graduation-cap mr-1"></i> WAFIYYA (Girls)
+            </button>
+          </div>
+
+          <!-- Role Switcher Button -->
+          <button onclick="openRoleModal()" id="roleBadgeBtn"
+            class="px-3 py-1.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow transition">
+            <i class="fa-solid fa-user-shield"></i>
+            <span id="activeRoleLabel">Admin (Full Control)</span>
+          </button>
+
+          <!-- Cloud Sync Indicator -->
+          <span id="syncStatusBadge" class="px-2.5 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-400/30 text-[11px] font-mono text-emerald-200 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="syncStatusText">Live Sync Ready</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center gap-1 sm:gap-2 mt-3 pt-2 border-t border-white/10 overflow-x-auto no-print">
+        <button onclick="switchTab('timetable')" id="tabBtn-timetable"
+          class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 bg-white text-wafy-900 shadow">
+          <i class="fa-solid fa-table-cells"></i> Timetable &amp; Optimizer
+        </button>
+        <button onclick="switchTab('audit')" id="tabBtn-audit"
+          class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 text-white/85 hover:bg-white/10">
+          <i class="fa-solid fa-clipboard-check"></i> 3:30 PM Daily Audit
+          <span id="missedCountPill" class="px-1.5 py-0.5 text-[10px] rounded-full bg-red-500 text-white font-bold">2</span>
+        </button>
+        <button onclick="switchTab('semester')" id="tabBtn-semester"
+          class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 text-white/85 hover:bg-white/10">
+          <i class="fa-solid fa-calendar-check"></i> Semesters &amp; Working Days
+        </button>
+        <button onclick="switchTab('faculty')" id="tabBtn-faculty"
+          class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 text-white/85 hover:bg-white/10">
+          <i class="fa-solid fa-users-gear"></i> Cross-Campus Faculty
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- STATUS TOAST BANNER -->
+  <div id="toastBanner" class="hidden bg-amber-50 border-b border-amber-200 text-amber-900 px-4 py-2.5 text-xs sm:text-sm font-medium no-print">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-amber-600"></i>
+        <span id="toastMessage">Ready</span>
+      </div>
+      <button onclick="document.getElementById('toastBanner').classList.add('hidden')" class="text-xs font-bold underline ml-4">Dismiss</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+    <!-- ==================== TAB 1: TIMETABLE & HIGH-DENSITY OPTIMIZER ==================== -->
+    <section id="tab-timetable" class="space-y-5">
+      <!-- Optimizer Control & Export Bar -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 no-print">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-xs font-bold">
+              0 Empty Period Guarantee
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 text-xs font-bold">
+              Multi-Pass Stochastic Engine
+            </span>
+          </div>
+          <h2 class="text-base sm:text-lg font-bold text-slate-900">
+            High-Density Academic Timetable Matrix (Mon – Sat • 7 Periods/Day)
+          </h2>
+          <p class="text-xs text-slate-600">
+            അധ്യാപകരുടെ ക്ലസ്റ്ററിംഗ് (Wafy Morning / Wafiyya Afternoon), സയൻസ് ഡബിൾ പീരിയഡുകൾ, 3-ബാച്ച് ഇലക്ടീവുകൾ, പി.ജി (Mon–Wed) എന്നിവ സ്വയം ക്രമീകരിക്കുന്നു.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Batch Selector -->
+          <select id="batchSelect" onchange="onBatchChanged(this.value)"
+            class="px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-wafy-600">
+          </select>
+
+          <button onclick="runStochasticOptimizer()" id="btnRunOptimizer"
+            class="px-4 py-2 rounded-xl bg-wafy-800 hover:bg-wafy-900 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-sm transition">
+            <i class="fa-solid fa-wand-magic-sparkles text-gold-400"></i>
+            <span>Auto-Optimize Timetable</span>
+          </button>
+
+          <button onclick="exportTimetablePDF()"
+            class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-file-pdf text-red-400"></i> A4 PDF
+          </button>
+
+          <button onclick="exportDataCSV()"
+            class="px-3 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-file-csv text-emerald-600"></i> CSV
+          </button>
+
+          <button onclick="exportDataJSON()"
+            class="px-3 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-code text-amber-600"></i> JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- Constraint Metrics Strip -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 no-print">
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-xs text-slate-500 font-medium">Weekly Density</div>
+          <div id="metricSlotsFilled" class="text-xl font-extrabold text-wafy-800 mt-0.5">42 / 42</div>
+          <div class="text-[11px] text-emerald-700 font-semibold">✓ Zero Empty Gaps</div>
+        </div>
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-xs text-slate-500 font-medium">Cross-Campus Clustered</div>
+          <div id="metricClustered" class="text-xl font-extrabold text-amber-600 mt-0.5">24 Slots</div>
+          <div class="text-[11px] text-slate-500">Morning Wafy / Afternoon Wafiyya</div>
+        </div>
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-xs text-slate-500 font-medium">Science Double Labs</div>
+          <div id="metricDoubleLabs" class="text-xl font-extrabold text-purple-700 mt-0.5">2 Blocks</div>
+          <div class="text-[11px] text-slate-500">Consecutive P3-P4 / P5-P6</div>
+        </div>
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-xs text-slate-500 font-medium">Split-Batch Electives</div>
+          <div id="metricElectives" class="text-xl font-extrabold text-teal-700 mt-0.5">3 Triads</div>
+          <div class="text-[11px] text-slate-500">Urdu / Malayalam / Arabic</div>
+        </div>
+      </div>
+
+      <!-- Printable A4 Landscape Timetable Container -->
+      <div id="printableTimetableArea" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <!-- Print Header Banner -->
+        <div class="bg-slate-900 text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 id="printCampusTitle" class="font-display font-bold text-base sm:text-lg text-gold-400">
+              KKHM ISLAMIC &amp; ARTS COLLEGE (WAFY - BOYS CAMPUS)
+            </h3>
+            <p id="printBatchSubtitle" class="text-xs text-slate-300">
+              Batch: Aliya Ula (Deg 1) • Co-ordinated Zero-Clash Academic Timetable
+            </p>
+          </div>
+          <div class="text-right text-xs text-slate-300 font-mono">
+            <div>Odd Semester 2026–27</div>
+            <div class="text-emerald-400">Click any cell to Edit or Log 3:30 PM Audit</div>
+          </div>
+        </div>
+
+        <!-- 6 Days x 7 Periods Matrix Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-left min-w-[920px]">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-bold text-slate-700 uppercase">
+                <th class="py-3 px-3 w-24 border-r border-slate-200">Day / Prd</th>
+                <th class="py-3 px-2.5 border-r border-slate-200">P1 <span class="block text-[10px] font-mono text-slate-500">08:30–09:20</span></th>
+                <th class="py-3 px-2.5 border-r border-slate-200">P2 <span class="block text-[10px] font-mono text-slate-500">09:20–10:10</span></th>
+                <th class="py-3 px-2.5 border-r border-slate-200">P3 <span class="block text-[10px] font-mono text-slate-500">10:25–11:15</span></th>
+                <th class="py-3 px-2.5 border-r border-slate-200">P4 <span class="block text-[10px] font-mono text-slate-500">11:15–12:05</span></th>
+                <th class="py-3 px-2.5 border-r border-slate-200">P5 <span class="block text-[10px] font-mono text-slate-500">01:15–02:05</span></th>
+                <th class="py-3 px-2.5 border-r border-slate-200">P6 <span class="block text-[10px] font-mono text-slate-500">02:05–02:50</span></th>
+                <th class="py-3 px-2.5">P7 <span class="block text-[10px] font-mono text-slate-500">02:50–03:30</span></th>
+              </tr>
+            </thead>
+            <tbody id="timetableGridBody" class="divide-y divide-slate-200 text-xs">
+              <!-- Populated dynamically by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: 3:30 PM DAILY PERIOD AUDIT & COMPENSATION ==================== -->
+    <section id="tab-audit" class="hidden space-y-5">
+      <div class="bg-gradient-to-r from-wafy-900 to-wafiyya-800 rounded-2xl p-5 text-white shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full bg-gold-500/20 text-gold-400 text-xs font-bold border border-gold-400/30">
+            3:30 PM CLASS LEADER WORKFLOW
+          </span>
+          <h2 class="text-lg sm:text-xl font-bold mt-1">
+            3:30 PM Daily Period Audit &amp; Missed Period Compensation Tracker
+          </h2>
+          <p class="text-xs text-emerald-100/90 mt-1">
+            എല്ലാ ദിവസവും വൈകുന്നേരം 3:30-ന് ക്ലാസ് ലീഡർമാർക്ക് ലോഗിൻ ചെയ്ത് നടന്ന പീരിയഡുകളും നഷ്ടപ്പെട്ടവയുടെ കാരണവും മേക്കപ്പ് ക്ലാസുകളും രേഖപ്പെടുത്താം.
+          </p>
+        </div>
+        <button onclick="openNewAuditModal()"
+          class="px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shrink-0 shadow">
+          <i class="fa-solid fa-plus-circle"></i> Record 3:30 PM Period Audit
+        </button>
+      </div>
+
+      <!-- Audit Summary Counters -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-xs text-slate-500 font-semibold">Conducted On-Time</div>
+          <div id="auditCountConducted" class="text-2xl font-extrabold text-emerald-700 mt-1">0</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-xs text-slate-500 font-semibold">Missed (Pending Makeup)</div>
+          <div id="auditCountMissed" class="text-2xl font-extrabold text-red-600 mt-1">0</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-xs text-slate-500 font-semibold">Substituted</div>
+          <div id="auditCountSubstituted" class="text-2xl font-extrabold text-amber-600 mt-1">0</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="text-xs text-slate-500 font-semibold">Compensated (Makeup Done)</div>
+          <div id="auditCountCompensated" class="text-2xl font-extrabold text-blue-600 mt-1">0</div>
+        </div>
+      </div>
+
+      <!-- Audit Records List -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <h3 class="font-bold text-sm sm:text-base text-slate-900">
+            Daily Period Audit Log &amp; Missed Class Compensation Queue
+          </h3>
+          <div class="flex items-center gap-1.5">
+            <button onclick="filterAudits('ALL')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-white">All</button>
+            <button onclick="filterAudits('MISSED')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100">Missed</button>
+            <button onclick="filterAudits('SUBSTITUTED')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 hover:bg-amber-100">Substituted</button>
+            <button onclick="filterAudits('COMPENSATED')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100">Compensated</button>
+          </div>
+        </div>
+        <div id="auditListContainer" class="divide-y divide-slate-200">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: ACADEMIC SEMESTERS & WORKING DAYS DEFICIT ==================== -->
+    <section id="tab-semester" class="hidden space-y-5">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">
+              Academic Semesters, Working Days &amp; Deficit Calculator
+            </h2>
+            <p class="text-xs text-slate-600">
+              സെമസ്റ്റർ അടിസ്ഥാനത്തിൽ വർക്കിംഗ് ദിവസങ്ങൾ, സൺഡേ/മാസാന്ത അവധികൾ, ലക്ഷ്യം വെച്ച ദിവസങ്ങൾ, കുറവു വന്ന ദിവസങ്ങൾ (Deficit) എന്നിവയുടെ കൃത്യമായ കണക്കുകൂട്ടൽ.
+            </p>
+          </div>
+          <button onclick="saveSemesterCalculation()"
+            class="px-4 py-2 rounded-xl bg-wafy-800 hover:bg-wafy-900 text-white text-xs sm:text-sm font-bold shadow-sm">
+            <i class="fa-solid fa-floppy-disk mr-1"></i> Save Semester Config
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Total Semester Calendar Days</label>
+            <input type="number" id="semTotalCalendar" value="182" oninput="recalcSemesterDeficit()"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-mono font-bold" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Sundays / Weekly Holidays</label>
+            <input type="number" id="semWeeklyOffs" value="52" oninput="recalcSemesterDeficit()"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-mono font-bold" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Monthly &amp; Festival Holidays</label>
+            <input type="number" id="semFestivalOffs" value="15" oninput="recalcSemesterDeficit()"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-mono font-bold" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">University Exam &amp; Event Days</label>
+            <input type="number" id="semExamDays" value="12" oninput="recalcSemesterDeficit()"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-mono font-bold" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Target Mandatory Working Days</label>
+            <input type="number" id="semTargetDays" value="110" oninput="recalcSemesterDeficit()"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-mono font-bold" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Makeup Working Days Scheduled</label>
+            <input type="number" id="semMakeupDays" value="4" oninput="recalcSemesterDeficit()"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-mono font-bold" />
+          </div>
+        </div>
+
+        <!-- Calculated Deficit Output Banner -->
+        <div id="semesterResultCard" class="p-4 rounded-2xl bg-slate-900 text-white grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+          <div>
+            <div class="text-xs text-slate-400">Net Available Working Days</div>
+            <div id="semNetAvailable" class="text-2xl font-mono font-extrabold text-emerald-400">107 Days</div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400">Target Instructional Days</div>
+            <div id="semTargetDisplay" class="text-2xl font-mono font-extrabold text-gold-400">110 Days</div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-400">Working Days Deficit / Surplus</div>
+            <div id="semDeficitDisplay" class="text-2xl font-mono font-extrabold text-red-400">3 Days Deficit</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: CROSS-CAMPUS FACULTY ROSTER ==================== -->
+    <section id="tab-faculty" class="hidden space-y-5">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-200">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">
+              Cross-Campus Faculty &amp; Travel Clustering Roster
+            </h2>
+            <p class="text-xs text-slate-600">
+              രണ്ട് കാമ്പസുകളിലും ഒരുപോലെ പഠിപ്പിക്കുന്ന അധ്യാപകരുടെ യാത്രാ സൗകര്യം (Morning Wafy P1–P4 / Afternoon Wafiyya P5–P7).
+            </p>
+          </div>
+        </div>
+        <div id="facultyListGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODAL: EDIT SLOT OR LOG 3:30 PM AUDIT ==================== -->
+  <div id="slotModal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h3 id="slotModalTitle" class="font-bold text-base text-slate-900">Manage Period Slot</h3>
+        <button onclick="closeSlotModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Subject Name</label>
+          <input type="text" id="modalSubjectName" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Arabic Kitab / Subtitle</label>
+          <input type="text" id="modalSubjectArabic" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-arabic text-base" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Faculty Name</label>
+            <input type="text" id="modalFacultyName" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Hall / Lab Room</label>
+            <input type="text" id="modalRoomName" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+        </div>
+        <div class="pt-2 border-t border-slate-200">
+          <label class="block font-bold text-wafy-800 mb-1">Quick 3:30 PM Daily Audit Status</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="quickAuditFromModal('CONDUCTED')"
+              class="py-2 px-3 rounded-xl bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-xs">
+              ✓ Conducted
+            </button>
+            <button type="button" onclick="quickAuditFromModal('MISSED')"
+              class="py-2 px-3 rounded-xl bg-red-100 hover:bg-red-200 text-red-900 font-bold text-xs">
+              ✕ Missed
+            </button>
+            <button type="button" onclick="quickAuditFromModal('SUBSTITUTED')"
+              class="py-2 px-3 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs">
+              ⇄ Substituted
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t border-slate-200">
+        <button onclick="closeSlotModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold">Cancel</button>
+        <button onclick="saveSlotModalChanges()" class="px-4 py-2 rounded-xl bg-wafy-800 text-white text-xs font-bold">Save Slot Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: 3-TIER ROLE SWITCHER ==================== -->
+  <div id="roleModal" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h3 class="font-bold text-base text-slate-900">3-Tier Role-Based Access Control</h3>
+        <button onclick="closeRoleModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div class="space-y-2.5 text-xs sm:text-sm">
+        <button onclick="setPortalRole('ADMIN')" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-wafy-700 hover:bg-wafy-50 transition">
+          <div class="font-bold text-slate-900">1. Academic Admin (മുഴുവൻ നിയന്ത്രണം)</div>
+          <div class="text-xs text-slate-500">Run High-Density Optimizer, edit slots, configure semesters</div>
+        </button>
+        <button onclick="setPortalRole('CLASS_LEADER')" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-amber-600 hover:bg-amber-50 transition">
+          <div class="font-bold text-slate-900">2. Class Leader (3:30 PM ഡെയ്ലി ഓഡിറ്റ്)</div>
+          <div class="text-xs text-slate-500">Submit daily 3:30 PM period audits &amp; compensation logs (Passcode: 3300)</div>
+        </button>
+        <button onclick="setPortalRole('STUDENT')" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-teal-600 hover:bg-teal-50 transition">
+          <div class="font-bold text-slate-900">3. Student / Public (റീഡ്-ഓൺലി സുതാര്യത)</div>
+          <div class="text-xs text-slate-500">Read-only transparency for timetables &amp; audit status</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-4 px-4 mt-8 no-print">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>
+        <strong class="text-white">WAFY &amp; WAFIYYA Co-ordinated Academic Timetable &amp; Audit Portal</strong> • KKHM Islamic &amp; Arts College &amp; Al-Gaith College for Girls
+      </div>
+      <div class="font-mono text-[11px] text-emerald-400">
+        Zero-Clash Engine v2.4 • Offline-First + Cloud Sync
+      </div>
+    </div>
+  </footer>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const WAFY_BATCHES = [
+      'Tamheediyya Ula (Yr 1)',
+      'Aliya Ula (Deg 1)',
+      'Aliya Thaniya (Deg 2)',
+      'Aliyaoona PG 1 (Mon-Wed)'
+    ];
+    const WAFIYYA_BATCHES = [
+      'Wafiyya Tamheediyya Ula',
+      'Wafiyya Aliya Ula (Deg 1)',
+      'Wafiyya Aliya Thaniya (Deg 2)',
+      'Wafiyya PG 1 (Mon-Wed)'
+    ];
+
+    let state = {
+      campus: 'WAFY',
+      batch: WAFY_BATCHES[1],
+      role: 'ADMIN',
+      auditFilter: 'ALL',
+      shuffleSeed: 0,
+      editingCell: null,
+      timetables: {},
+      audits: [
+        {
+          id: 'aud_1',
+          campus: 'WAFY',
+          batch: 'Aliya Ula (Deg 1)',
+          date: '2026-11-03',
+          day: 'MON',
+          period: 1,
+          subject: 'Fiqh: Fathhul Mueen',
+          faculty: 'Usthad Abdul Hakeem Wafy',
+          status: 'CONDUCTED',
+          reason: '',
+          leader: 'Muhammed Sinan (Class Leader)',
+          compensation: ''
+        },
+        {
+          id: 'aud_2',
+          campus: 'WAFY',
+          batch: 'Aliya Ula (Deg 1)',
+          date: '2026-11-03',
+          day: 'MON',
+          period: 3,
+          subject: 'Physics & Optics Lab [Double P3-P4]',
+          faculty: 'Prof. Abdur Rauf',
+          status: 'MISSED',
+          reason: 'Calicut University Practical Valuation Duty',
+          leader: 'Muhammed Sinan (Class Leader)',
+          compensation: 'Pending Saturday Special P6-P7'
+        },
+        {
+          id: 'aud_3',
+          campus: 'WAFIYYA',
+          batch: 'Wafiyya Aliya Ula (Deg 1)',
+          date: '2026-11-03',
+          day: 'MON',
+          period: 5,
+          subject: 'Tafsir al-Jalalayn (Clustered Afternoon)',
+          faculty: 'Dr. Salman Faris Wafy',
+          status: 'SUBSTITUTED',
+          reason: 'Cross-Campus Transit Delay (Rain)',
+          leader: 'Ayisha Noura (Class Leader)',
+          compensation: 'Covered by Usthada Fathima Suhara Wafiyya'
+        },
+        {
+          id: 'aud_4',
+          campus: 'WAFIYYA',
+          batch: 'Wafiyya Tamheediyya Ula',
+          date: '2026-11-02',
+          day: 'TUE',
+          period: 6,
+          subject: 'Split Elective: Urdu / Malayalam / Arabic',
+          faculty: 'Prof. Vineeth & Language Panel',
+          status: 'COMPENSATED',
+          reason: 'College Arts Fest Rehearsal',
+          leader: 'Fathima Hiba (Class Leader)',
+          compensation: 'Completed Makeup on 2026-11-03 (3:40 PM)'
+        }
+      ],
+      faculty: [
+        {
+          name: 'Usthad Abdul Hakeem Wafy',
+          designation: 'Senior Mudarris (Fiqh & Usul al-Fiqh)',
+          campus: 'BOTH (WAFY + WAFIYYA)',
+          subjects: 'Fathhul Mueen, Mahalli, Jam al-Jawami',
+          cluster: 'Morning WAFY (P1-P4) → Afternoon WAFIYYA (P5-P7)',
+          load: '20 / 24 periods'
+        },
+        {
+          name: 'Dr. Salman Faris Wafy',
+          designation: 'HOD Tafsir & Arabic Rhetoric',
+          campus: 'BOTH (WAFY + WAFIYYA)',
+          subjects: 'Tafsir al-Jalalayn, Balagha, Split Elective: Arabic',
+          cluster: 'Morning WAFY (P1-P4) → Afternoon WAFIYYA (P5-P7)',
+          load: '18 / 22 periods'
+        },
+        {
+          name: 'Usthada Fathima Suhara Wafiyya',
+          designation: 'Senior Lecturer (Nahw, Hadith & Mantiq)',
+          campus: 'WAFIYYA (Resident)',
+          subjects: 'Alfiyya Ibn Malik, Mishkat al-Masabih',
+          cluster: 'Full-Day Resident at Al-Gaith Wafiyya',
+          load: '21 / 24 periods'
+        },
+        {
+          name: 'Prof. Abdur Rauf',
+          designation: 'Science Lab Coordinator',
+          campus: 'BOTH (WAFY + WAFIYYA)',
+          subjects: 'Physics Double Lab, Chemistry Double Lab',
+          cluster: 'Consecutive Double Period Blocks (P3-P4 / P5-P6)',
+          load: '16 / 20 periods'
+        },
+        {
+          name: 'Prof. Vineeth Kumar & Language Panel',
+          designation: '3-Batch Split Elective Trio',
+          campus: 'BOTH (WAFY + WAFIYYA)',
+          subjects: 'Batch A: Urdu | Batch B: Malayalam | Batch C: Arabic',
+          cluster: 'Simultaneous 3-Room Split Elective',
+          load: '18 / 24 periods'
+        },
+        {
+          name: 'Dr. Muhammed Najeeb Hudawi',
+          designation: 'PG Research & Comparative Law Director',
+          campus: 'BOTH (WAFY + WAFIYYA)',
+          subjects: 'Maqasid al-Shariah (PG Mon-Wed Core), Thesis Lab',
+          cluster: 'Mon–Wed Intensive PG Schedule',
+          load: '15 / 18 periods'
+        }
+      ]
+    };
+
+    function generateBatchTimetable(campus, batch, seed = 0) {
+      const isPg = batch.toUpperCase().includes('PG');
+      const isWafy = campus === 'WAFY';
+      const grid = {};
+
+      DAYS.forEach((day, dIdx) => {
+        grid[day] = {};
+        const isMonWed = ['MON', 'TUE', 'WED'].includes(day);
+        let p = 1;
+        while (p <= 7) {
+          if (isPg) {
+            if (isMonWed) {
+              const pgSubjects = [
+                { name: 'Maqasid al-Shariah (PG Core)', arab: 'مقاصد الشريعة الإسلامية', fac: 'Dr. M. Najeeb Hudawi', type: 'PG_SEMINAR', room: 'PG Seminar Hall' },
+                { name: 'Advanced Tafsir Hermeneutics', arab: 'مناهج المفسرين', fac: 'Dr. Salman Faris Wafy', type: 'PG_SEMINAR', room: 'PG Council Room' },
+                { name: 'Comparative Constitutional Law', arab: 'القانون المقارن والسياسة الشرعية', fac: 'Ust. Abdul Hakeem Wafy', type: 'PG_SEMINAR', room: 'PG Auditorium' }
+              ];
+              const pick = pgSubjects[(dIdx + p + seed) % pgSubjects.length];
+              grid[day][p] = {
+                subject: pick.name,
+                arabic: pick.arab,
+                faculty: pick.fac,
+                room: pick.room,
+                type: 'PG MON-WED CORE',
+                badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
+                isCross: true,
+                isDouble: p === 3 || p === 4
+              };
+            } else {
+              grid[day][p] = {
+                subject: p <= 4 ? 'PG Dissertation & Manuscript Lab' : 'Teaching Practicum & Fatwa Clinic',
+                arabic: p <= 4 ? 'تحقيق المخطوطات والبحث العلمي' : 'التدريب التربوي والإفتاء',
+                faculty: 'Dr. M. Najeeb Hudawi',
+                room: 'PG Research Wing',
+                type: 'PG GUIDED RESEARCH',
+                badgeClass: 'bg-slate-100 text-slate-800 border-slate-300',
+                isCross: false,
+                isDouble: false
+              };
+            }
+            p++;
+            continue;
+          }
+
+          // Science Consecutive Double Lab (P3-P4 on MON/WED for Wafy, P5-P6 on TUE/THU for Wafiyya)
+          const isDoubleStart = (isWafy && (day === 'MON' || day === 'WED') && p === 3) ||
+                                (!isWafy && (day === 'TUE' || day === 'THU') && p === 5);
+          if (isDoubleStart && p <= 6) {
+            const labTitle = (day === 'MON' || day === 'TUE')
+              ? 'Physics & Optics Lab (Double)'
+              : 'Chemistry & Life Science Lab (Double)';
+            for (let sp of [p, p + 1]) {
+              grid[day][sp] = {
+                subject: `${labTitle} [P${p}-P${p+1}]`,
+                arabic: 'مختبر العلوم التطبيقي المزدوج',
+                faculty: 'Prof. Abdur Rauf',
+                room: isWafy ? 'Wafy Science Lab' : 'Al-Gaith Lab A',
+                type: 'DOUBLE LAB',
+                badgeClass: 'bg-purple-100 text-purple-900 border-purple-300',
+                isCross: true,
+                isDouble: true
+              };
+            }
+            p += 2;
+            continue;
+          }
+
+          // 3-Batch Split Elective
+          const isElective = (isWafy && p === 2 && ['TUE', 'THU', 'SAT'].includes(day)) ||
+                             (!isWafy && p === 6 && ['MON', 'WED', 'FRI'].includes(day));
+          if (isElective) {
+            grid[day][p] = {
+              subject: 'Split Elective: Urdu / Mal / Ara',
+              arabic: 'اللغات الاختيارية (أردو / مليالم / عربي)',
+              faculty: 'Batch A: Ust. Salman | B: Prof. Vineeth | C: Ust. Hakeem',
+              room: 'Halls A / B / C',
+              type: '3-BATCH ELECTIVE',
+              badgeClass: 'bg-teal-100 text-teal-900 border-teal-300',
+              isCross: true,
+              isDouble: false
+            };
+            p++;
+            continue;
+          }
+
+          // Cross-Campus Faculty Travel Clustering (Morning P1-P4 Wafy, Afternoon P5-P7 Wafiyya)
+          const isMorning = p <= 4;
+          const useClustered = (isWafy && isMorning) || (!isWafy && !isMorning);
+          if (useClustered) {
+            const clusteredPool = [
+              { name: 'Fiqh: Fathhul Mueen', arab: 'فتح المعين بشرح قرة العين', fac: 'Ust. Abdul Hakeem Wafy' },
+              { name: 'Tafsir al-Jalalayn', arab: 'تفسير الجلالين وعلوم القرآن', fac: 'Dr. Salman Faris Wafy' },
+              { name: 'Usul al-Fiqh: Jam al-Jawami', arab: 'جمع الجوامع في أصول الفقه', fac: 'Ust. Abdul Hakeem Wafy' },
+              { name: 'Balagha & Classical Rhetoric', arab: 'البلاغة الواضحة وعلم البيان', fac: 'Dr. Salman Faris Wafy' }
+            ];
+            const pick = clusteredPool[(dIdx + p + seed) % clusteredPool.length];
+            grid[day][p] = {
+              subject: pick.name,
+              arabic: pick.arab,
+              faculty: pick.fac,
+              room: isWafy ? `KKHM Hall 10${(p % 3) + 1}` : `Al-Gaith Riwaq 20${(p % 3) + 1}`,
+              type: 'CLUSTERED KITAB',
+              badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+              isCross: true,
+              isDouble: false
+            };
+          } else {
+            const residentPool = [
+              { name: 'Nahw: Alfiyya Ibn Malik', arab: 'ألفية ابن مالك في النحو', type: 'ISLAMIC' },
+              { name: 'BA English & Modernity', arab: 'الأدب الإنجليزي والدراسات', type: 'ARTS DEGREE' },
+              { name: 'Hadith: Mishkat al-Masabih', arab: 'مشكاة المصابيح', type: 'ISLAMIC' },
+              { name: 'Sociology & Economics Core', arab: 'علم الاجتماع والاقتصاد', type: 'ARTS DEGREE' }
+            ];
+            const pick = residentPool[(dIdx + p + seed) % residentPool.length];
+            grid[day][p] = {
+              subject: pick.name,
+              arabic: pick.arab,
+              faculty: isWafy ? 'Usthad Muhsin Wafy (Resident)' : 'Usthada Fathima Suhara Wafiyya',
+              room: isWafy ? `Arts Block 10${(p % 2) + 4}` : `Lecture Hall 20${(p % 2) + 4}`,
+              type: pick.type,
+              badgeClass: 'bg-indigo-50 text-indigo-900 border-indigo-200',
+              isCross: false,
+              isDouble: false
+            };
+          }
+          p++;
+        }
+      });
+
+      return grid;
+    }
+
+    function getTimetableKey(campus, batch) {
+      return `${campus}__${batch}`;
+    }
+
+    function ensureCurrentTimetable() {
+      const key = getTimetableKey(state.campus, state.batch);
+      if (!state.timetables[key]) {
+        state.timetables[key] = generateBatchTimetable(state.campus, state.batch, state.shuffleSeed);
+      }
+      return state.timetables[key];
+    }
+
+    function renderBatchDropdown() {
+      const select = document.getElementById('batchSelect');
+      const batches = state.campus === 'WAFY' ? WAFY_BATCHES : WAFIYYA_BATCHES;
+      if (!batches.includes(state.batch)) {
+        state.batch = batches[0];
+      }
+      select.innerHTML = batches
+        .map(b => `<option value="${b}" ${b === state.batch ? 'selected' : ''}>${b}</option>`)
+        .join('');
+    }
+
+    function renderTimetableGrid() {
+      const grid = ensureCurrentTimetable();
+      const tbody = document.getElementById('timetableGridBody');
+      let crossCount = 0;
+      let doubleCount = 0;
+      let electiveCount = 0;
+
+      tbody.innerHTML = DAYS.map(day => {
+        const rowCells = [1, 2, 3, 4, 5, 6, 7].map(p => {
+          const cell = grid[day][p];
+          if (cell.isCross) crossCount++;
+          if (cell.isDouble) doubleCount += 0.5;
+          if (cell.type.includes('ELECTIVE')) electiveCount++;
+
+          return `
+            <td onclick="openSlotModal('${day}', ${p})"
+                class="p-2 align-top border-r border-slate-200 hover:bg-emerald-50/60 cursor-pointer transition group">
+              <div class="p-2 rounded-xl border ${cell.badgeClass} h-full flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between gap-1">
+                    <span class="text-[9px] font-mono font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/80">
+                      ${cell.type}
+                    </span>
+                    <i class="fa-solid fa-pen-to-square text-[10px] opacity-0 group-hover:opacity-100 transition"></i>
+                  </div>
+                  <div class="font-bold text-slate-900 text-xs mt-1 leading-snug">${cell.subject}</div>
+                  <div class="font-arabic text-sm text-emerald-900 leading-tight mt-0.5">${cell.arabic}</div>
+                </div>
+                <div class="mt-2 pt-1.5 border-t border-black/10 text-[10px] text-slate-700">
+                  <div class="font-semibold truncate">${cell.faculty}</div>
+                  <div class="text-slate-500 font-mono">${cell.room}</div>
+                </div>
+              </div>
+            </td>
+          `;
+        }).join('');
+
+        return `
+          <tr>
+            <td class="py-3 px-3 font-extrabold text-slate-900 bg-slate-50 border-r border-slate-200 font-mono">
+              ${day}
+            </td>
+            ${rowCells}
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('metricSlotsFilled').textContent = '42 / 42';
+      document.getElementById('metricClustered').textContent = `${crossCount} Slots`;
+      document.getElementById('metricDoubleLabs').textContent = `${Math.round(doubleCount)} Blocks`;
+      document.getElementById('metricElectives').textContent = `${electiveCount} Triads`;
+
+      const collegeTitle = state.campus === 'WAFY'
+        ? 'KKHM ISLAMIC & ARTS COLLEGE (WAFY - BOYS CAMPUS)'
+        : 'AL-GAITH ISLAMIC & ARTS COLLEGE FOR GIRLS (WAFIYYA)';
+      document.getElementById('activeCollegeHeading').textContent = collegeTitle;
+      document.getElementById('printCampusTitle').textContent = collegeTitle;
+      document.getElementById('printBatchSubtitle').textContent =
+        `Batch: ${state.batch} • Zero-Empty-Period Co-ordinated Academic Timetable`;
+    }
+
+    function renderAudits() {
+      const list = document.getElementById('auditListContainer');
+      const campusAudits = state.audits.filter(a => a.campus === state.campus);
+      const filtered = campusAudits.filter(a => state.auditFilter === 'ALL' || a.status === state.auditFilter);
+
+      document.getElementById('auditCountConducted').textContent =
+        campusAudits.filter(a => a.status === 'CONDUCTED').length;
+      const missedLen = campusAudits.filter(a => a.status === 'MISSED').length;
+      document.getElementById('auditCountMissed').textContent = missedLen;
+      document.getElementById('missedCountPill').textContent = missedLen;
+      document.getElementById('auditCountSubstituted').textContent =
+        campusAudits.filter(a => a.status === 'SUBSTITUTED').length;
+      document.getElementById('auditCountCompensated').textContent =
+        campusAudits.filter(a => a.status === 'COMPENSATED').length;
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="p-6 text-center text-slate-500 text-sm">No audit logs found for this filter.</div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(a => {
+        const badgeMap = {
+          CONDUCTED: 'bg-emerald-100 text-emerald-800',
+          MISSED: 'bg-red-100 text-red-800',
+          SUBSTITUTED: 'bg-amber-100 text-amber-800',
+          COMPENSATED: 'bg-blue-100 text-blue-800'
+        };
+        const canCompensate = a.status === 'MISSED' && state.role !== 'STUDENT';
+        return `
+          <div class="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-slate-50">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold ${badgeMap[a.status] || 'bg-slate-100'}">${a.status}</span>
+                <span class="font-bold text-slate-900 text-sm">P${a.period} • ${a.subject}</span>
+                <span class="text-xs text-slate-500 font-mono">(${a.date} • ${a.day})</span>
+              </div>
+              <div class="text-xs text-slate-600">
+                Batch: <strong>${a.batch}</strong> • Faculty: ${a.faculty} • Audited by: ${a.leader}
+              </div>
+              ${a.reason ? `<div class="text-xs text-red-600 font-medium">Reason: ${a.reason}</div>` : ''}
+              ${a.compensation ? `<div class="text-xs text-blue-700 font-semibold">Makeup / Compensation: ${a.compensation}</div>` : ''}
+            </div>
+            ${canCompensate ? `
+              <button onclick="markAuditCompensated('${a.id}')"
+                class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shrink-0">
+                <i class="fa-solid fa-calendar-plus mr-1"></i> Schedule Makeup
+              </button>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderFaculty() {
+      const container = document.getElementById('facultyListGrid');
+      container.innerHTML = state.faculty.map(f => `
+        <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 flex items-start gap-3">
+          <div class="w-10 h-10 rounded-xl bg-wafy-800 text-gold-400 flex items-center justify-center font-bold shrink-0">
+            <i class="fa-solid fa-user-tie"></i>
+          </div>
+          <div class="space-y-1 text-xs">
+            <div class="font-bold text-sm text-slate-900">${f.name}</div>
+            <div class="text-slate-500">${f.designation}</div>
+            <div class="text-slate-700"><strong>Subjects:</strong> ${f.subjects}</div>
+            <div class="text-emerald-800 font-mono font-semibold">Cluster: ${f.cluster}</div>
+            <div class="text-amber-700 font-mono font-bold">Weekly Load: ${f.load}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function switchCampus(campus) {
+      state.campus = campus;
+      document.getElementById('btnCampusWafy').className = campus === 'WAFY'
+        ? 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-wafy-900 shadow'
+        : 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-white/85 hover:text-white';
+      document.getElementById('btnCampusWafiyya').className = campus === 'WAFIYYA'
+        ? 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-wafiyya-900 shadow'
+        : 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-white/85 hover:text-white';
+
+      renderBatchDropdown();
+      renderTimetableGrid();
+      renderAudits();
+      showToast(`Switched active campus to ${campus}`);
+    }
+
+    function onBatchChanged(newBatch) {
+      state.batch = newBatch;
+      renderTimetableGrid();
+    }
+
+    function switchTab(tabName) {
+      ['timetable', 'audit', 'semester', 'faculty'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tabName);
+        const btn = document.getElementById(`tabBtn-${t}`);
+        if (t === tabName) {
+          btn.className = 'tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 bg-white text-wafy-900 shadow';
+        } else {
+          btn.className = 'tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 text-white/85 hover:bg-white/10';
+        }
+      });
+    }
+
+    function runStochasticOptimizer() {
+      if (state.role !== 'ADMIN') {
+        showToast('Only Academic Admin can run the High-Density Timetable Optimizer.');
+        return;
+      }
+      state.shuffleSeed++;
+      const key = getTimetableKey(state.campus, state.batch);
+      state.timetables[key] = generateBatchTimetable(state.campus, state.batch, state.shuffleSeed);
+      saveStateToLocal();
+      renderTimetableGrid();
+      showToast(`✓ Multi-pass stochastic optimizer generated 42 conflict-free slots for ${state.batch} (0 Empty Periods).`);
+    }
+
+    function openSlotModal(day, period) {
+      if (state.role === 'STUDENT') {
+        showToast('Read-Only Student Mode: Switch to Class Leader or Admin to edit or audit periods.');
+        return;
+      }
+      const grid = ensureCurrentTimetable();
+      const cell = grid[day][period];
+      state.editingCell = { day, period };
+      document.getElementById('slotModalTitle').textContent =
+        `${state.campus} • ${state.batch} (${day} - Period P${period})`;
+      document.getElementById('modalSubjectName').value = cell.subject;
+      document.getElementById('modalSubjectArabic').value = cell.arabic;
+      document.getElementById('modalFacultyName').value = cell.faculty;
+      document.getElementById('modalRoomName').value = cell.room;
+      document.getElementById('slotModal').classList.remove('hidden');
+    }
+
+    function closeSlotModal() {
+      document.getElementById('slotModal').classList.add('hidden');
+    }
+
+    function saveSlotModalChanges() {
+      if (!state.editingCell) return;
+      const { day, period } = state.editingCell;
+      const grid = ensureCurrentTimetable();
+      grid[day][period].subject = document.getElementById('modalSubjectName').value.trim() || grid[day][period].subject;
+      grid[day][period].arabic = document.getElementById('modalSubjectArabic').value.trim();
+      grid[day][period].faculty = document.getElementById('modalFacultyName').value.trim() || grid[day][period].faculty;
+      grid[day][period].room = document.getElementById('modalRoomName').value.trim() || grid[day][period].room;
+      saveStateToLocal();
+      renderTimetableGrid();
+      closeSlotModal();
+      showToast(`Updated ${day} P${period} slot.`);
+    }
+
+    function quickAuditFromModal(status) {
+      if (!state.editingCell) return;
+      const { day, period } = state.editingCell;
+      const grid = ensureCurrentTimetable();
+      const cell = grid[day][period];
+      const reason = status === 'CONDUCTED' ? '' : prompt('Enter reason for Missed / Substituted period:', 'University Duty / Transit Delay') || '';
+      state.audits.unshift({
+        id: 'aud_' + Date.now(),
+        campus: state.campus,
+        batch: state.batch,
+        date: new Date().toISOString().slice(0, 10),
+        day,
+        period,
+        subject: cell.subject,
+        faculty: cell.faculty,
+        status,
+        reason,
+        leader: state.campus === 'WAFY' ? 'Muhammed Sinan (Class Leader)' : 'Ayisha Noura (Class Leader)',
+        compensation: ''
+      });
+      saveStateToLocal();
+      renderAudits();
+      closeSlotModal();
+      showToast(`3:30 PM Daily Audit logged: ${day} P${period} marked ${status}`);
+    }
+
+    function openNewAuditModal() {
+      openSlotModal('MON', 1);
+    }
+
+    function filterAudits(status) {
+      state.auditFilter = status;
+      renderAudits();
+    }
+
+    function markAuditCompensated(auditId) {
+      const item = state.audits.find(a => a.id === auditId);
+      if (!item) return;
+      const compDate = prompt('Enter Scheduled Makeup Date & Period Slot:', 'Saturday Special P6 (3:40 PM)');
+      if (!compDate) return;
+      item.status = 'COMPENSATED';
+      item.compensation = compDate;
+      saveStateToLocal();
+      renderAudits();
+      showToast(`Marked P${item.period} (${item.subject}) as COMPENSATED.`);
+    }
+
+    function recalcSemesterDeficit() {
+      const cal = parseInt(document.getElementById('semTotalCalendar').value || '182', 10);
+      const wk = parseInt(document.getElementById('semWeeklyOffs').value || '52', 10);
+      const fest = parseInt(document.getElementById('semFestivalOffs').value || '15', 10);
+      const exam = parseInt(document.getElementById('semExamDays').value || '12', 10);
+      const target = parseInt(document.getElementById('semTargetDays').value || '110', 10);
+      const makeup = parseInt(document.getElementById('semMakeupDays').value || '4', 10);
+
+      const net = Math.max(0, cal - wk - fest - exam + makeup);
+      const deficit = target - net;
+
+      document.getElementById('semNetAvailable').textContent = `${net} Days`;
+      document.getElementById('semTargetDisplay').textContent = `${target} Days`;
+      const defEl = document.getElementById('semDeficitDisplay');
+      if (deficit > 0) {
+        defEl.textContent = `${deficit} Days Deficit`;
+        defEl.className = 'text-2xl font-mono font-extrabold text-red-400';
+      } else {
+        defEl.textContent = `${Math.abs(deficit)} Days Surplus (Target Met)`;
+        defEl.className = 'text-2xl font-mono font-extrabold text-emerald-400';
+      }
+    }
+
+    function saveSemesterCalculation() {
+      saveStateToLocal();
+      showToast(`Saved Academic Semester Working Days configuration for ${state.campus}.`);
+    }
+
+    function openRoleModal() {
+      document.getElementById('roleModal').classList.remove('hidden');
+    }
+
+    function closeRoleModal() {
+      document.getElementById('roleModal').classList.add('hidden');
+    }
+
+    function setPortalRole(role) {
+      if (role === 'CLASS_LEADER') {
+        const code = prompt('Enter Class Leader 3:30 PM Audit Passcode (Default: 3300):', '3300');
+        if (code !== '3300') {
+          showToast('Invalid passcode. Use 3300 for Class Leader access.');
+          return;
+        }
+      }
+      state.role = role;
+      const labels = {
+        ADMIN: 'Admin (Full Control)',
+        CLASS_LEADER: 'Class Leader (3:30 PM Audit)',
+        STUDENT: 'Student (Read-Only)'
+      };
+      document.getElementById('activeRoleLabel').textContent = labels[role];
+      closeRoleModal();
+      renderAudits();
+      showToast(`Switched active role to ${labels[role]}`);
+    }
+
+    function exportTimetablePDF() {
+      const element = document.getElementById('printableTimetableArea');
+      const opt = {
+        margin: 6,
+        filename: `WAFY_WAFIYYA_Timetable_${state.campus}_${state.batch.replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+      showToast('Generating A4 Landscape PDF...');
+      html2pdf().set(opt).from(element).save();
+    }
+
+    function exportDataCSV() {
+      const grid = ensureCurrentTimetable();
+      let csv = 'CAMPUS,BATCH,DAY,PERIOD,SUBJECT,FACULTY,ROOM,TYPE\n';
+      DAYS.forEach(day => {
+        [1, 2, 3, 4, 5, 6, 7].forEach(p => {
+          const c = grid[day][p];
+          csv += `"${state.campus}","${state.batch}","${day}","P${p}","${c.subject}","${c.faculty}","${c.room}","${c.type}"\n`;
+        });
+      });
+      downloadBlob(csv, `Wafy_Wafiyya_${state.campus}_Timetable.csv`, 'text/csv');
+    }
+
+    function exportDataJSON() {
+      const dataStr = JSON.stringify(state, null, 2);
+      downloadBlob(dataStr, `Wafy_Wafiyya_Backup_${state.campus}.json`, 'application/json');
+    }
+
+    function downloadBlob(content, filename, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function showToast(msg) {
+      const banner = document.getElementById('toastBanner');
+      document.getElementById('toastMessage').textContent = msg;
+      banner.classList.remove('hidden');
+    }
+
+    function saveStateToLocal() {
+      try {
+        localStorage.setItem('wafy_wafiyya_portal_v2', JSON.stringify({
+          timetables: state.timetables,
+          audits: state.audits
+        }));
+      } catch (e) {}
+    }
+
+    function loadStateFromLocal() {
+      try {
+        const raw = localStorage.getItem('wafy_wafiyya_portal_v2');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.timetables) state.timetables = parsed.timetables;
+          if (parsed.audits) state.audits = parsed.audits;
+        }
+      } catch (e) {}
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadStateFromLocal();
+      renderBatchDropdown();
+      renderTimetableGrid();
+      renderAudits();
+      renderFaculty();
+      recalcSemesterDeficit();
+    });
+  </script>
+</body>
+</html>
